@@ -86,9 +86,10 @@ export class SentryPlugin implements Plugin {
   validated: boolean;
   isInstrumented: boolean;
 
-  constructor(serverless: Serverless, options: Serverless.Options) {
+  constructor(serverless: Serverless, options: Serverless.Options, {log}) {
     this.serverless = serverless;
     this.options = options;
+    this.log = log;
     this.custom = this.serverless.service.custom;
     this.provider = this.serverless.getProvider("aws");
 
@@ -162,7 +163,10 @@ export class SentryPlugin implements Plugin {
 
       "after:deploy:function:deploy": async () => {
         await this.createSentryRelease();
-        await this.uploadSentrySourcemaps();
+        // uploading sentry source maps doesn't work for "deploy function" command #67
+        // TODO to add proper fix once it's addressed on serverless-core https://github.com/serverless/serverless/issues/11179
+        this.log.warning('Uploading source maps is skipped for "deploy function" because it is not working');
+        // await this.uploadSentrySourcemaps();
         await this.deploySentryRelease();
       },
 
@@ -471,7 +475,7 @@ export class SentryPlugin implements Plugin {
       .for(results)
       .process(async (nextArtifact) => await nextArtifact());
   }
-
+de
   async _uploadSourceMap(entry: AdmZip.IZipEntry, params: ApiParameters): Promise<void> {
     const prefix = typeof this.sentry.sourceMaps === "object" && this.sentry.sourceMaps.urlPrefix;
     const filePath = prefix ? path.join(prefix, entry.entryName) : entry.entryName;
