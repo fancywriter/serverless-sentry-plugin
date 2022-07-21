@@ -162,7 +162,9 @@ export class SentryPlugin implements Plugin {
 
       "after:deploy:function:deploy": async () => {
         await this.createSentryRelease();
-        await this.uploadSentrySourcemaps();
+        // uploading sentry source maps doesn't work for "deploy function" command #67
+        // TODO to add proper fix once it's addressed on serverless-core https://github.com/serverless/serverless/issues/11179
+        // await this.uploadSentrySourcemaps();
         await this.deploySentryRelease();
       },
 
